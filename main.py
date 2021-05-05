@@ -46,8 +46,37 @@ def select_best_model(x, y):
     return model
 
 
+# start GUI
+root = Tk()
+root.title("Corona vaccination prediction")
+root.geometry("700x200")
+# Create a Tkinter variable
+# clicked = StringVar(root)
+clicked = StringVar(root)
+clicked.set("Choose country")
+
+message = Label(root, text="Pick a country below, and we'll predict when it will be fully vaccinated.")
+drop_down_country = OptionMenu(root, clicked, *sorted(popdata_new.country), command=clicked.func)
+drop_down_country.pack
+
+
+def func(value):
+    print(value)
+
+
+message.grid(row=1, column=0)
+drop_down_country.grid(row=4, column=0)
+
+# Make the value change
+# def change_dropdown(*args):
+#    print(clicked.get())
+
+predict_button = Button(root, text="Predict!").grid(row=6, column=0)
+
 # selectedCountry = clicked.get()
+# print(clicked)
 selectedCountry = 'Denmark'
+
 # Get population in a selected country
 selectedPop = get_population(popdata_new, selectedCountry)
 
@@ -131,31 +160,6 @@ print("At this day, this many people will be fully vaccinated: ", numOfVacPeople
 print("We know this, with certainty from 0-1: ", r2_score(y, model(x)))
 
 # GUI
-root = Tk()
-root.title("Corona vaccination prediction")
-root.geometry("700x200")
-
-# Create a Tkinter variable
-# clicked = StringVar(root)
-clicked = StringVar()
-clicked.set("Choose country")
-
-message = Label(root, text="Pick a country below, and we'll predict when it will be fully vaccinated.")
-drop_down_country = OptionMenu(root, clicked, *sorted(popdata_new.country))
-drop_down_country.pack
-
-message.grid(row=1, column=0)
-drop_down_country.grid(row=4, column=0)
-
-
-# Make the value change
-def change_dropdown(*args):
-    print(clicked.get())
-
-
-predict_button = Button(root, text="Predict!").grid(row=6, column=0)
-
-
 popMsg = Label(root, text="Population in your selected country : ", ).grid(row=9, column=0)
 popInput = Label(root, text=selectedPop).grid(row=9, column=1)
 
