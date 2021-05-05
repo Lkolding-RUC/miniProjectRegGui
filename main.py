@@ -4,6 +4,8 @@ import numpy as np
 import datetime as dt
 import matplotlib.pyplot as plt
 from sklearn.metrics import r2_score
+from tkinter import *
+import tkinter as tk
 
 # Read csv files no paths pwease! Just keep data in seperate data folder
 vacdata = pd.read_csv('archive/country_vaccinations.csv')
@@ -123,6 +125,42 @@ print("At this day, this many people will be fully vaccinated: ", numOfVacPeople
 #print("The country has this many citizens: ", spec_country['population'])
 print("We know this, with certainty from 0-1: ", r2_score(y, model(x)))
 
+###### GUI ######
+root = tk.Tk()
+root.title("Corona vaccination prediction")
+
+# Add a grid
+mainframe = Frame(root, width=300, height=300)
+mainframe.grid(row=0, column=0)
+mainframe.columnconfigure(0, weight=3)
+mainframe.columnconfigure(1, weight=1)
+mainframe.rowconfigure(0, weight=1)
+mainframe.rowconfigure(1, weight=3)
+# mainframe.pack(pady = 100, padx = 100)
+# mainframe.pack(side=TOP, expand=NO, fill=NONE)
+
+# Create a Tkinter variable
+tkvar = StringVar(root)
+# Set default option
+tkvar.set("Choose country")
+
+message = Label(mainframe, text="Pick a country below, and we'll predict when it will be fully vaccinated.")
+drop_down_country = OptionMenu(mainframe, tkvar, *sorted(popdata_new.country))
+# mb.grid(row=3, column=0)
+
+message.grid(row=1, column=0)
+drop_down_country.grid(row=4, column=0)
+
+
+# Make the value change
+def change_dropdown(*args):
+    print(tkvar.get())
+
+
+# Link function to change dropdown
+# tkvar.trace('w', change_dropdown())
+
+predict_button = Button(mainframe, text="Predict!").grid(row=6, column=0)
 
 prediction = True
 
@@ -132,3 +170,5 @@ if prediction == spec_country['population'].iloc[0]:
 plt.scatter(x, y)
 plt.plot(line, model(line))
 plt.show()
+
+root.mainloop()
