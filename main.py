@@ -57,7 +57,7 @@ def predict(choice):
 
     model = select_best_model(x, y)
     # model = np.poly1d(np.polyfit(x, y, 5))
-    line = np.linspace(0, 104, 100)  # last value = precision
+    line = np.linspace(0, 104, 120)  # last value = precision
 
     # Days from start day - to predicted day
     predictionDay = predict_fully_vaccinated_day(model, selectedPop)
@@ -78,11 +78,11 @@ def predict(choice):
     pop_msg = Label(root, text="Population in your selected country : ", ).grid(row=9, column=0)
     pop_input = Label(root, text=selectedPop).grid(row=9, column=1)
 
-    # day_msg = Label(root, text="Days from first vaccination: ").grid(row=11, column=0)
     # day_input = Label(root, text=predictionDay).grid(row=11, column=1)
-    date_msg = Label(root, text="The final date where 100% of population will be vaccinated is: ").grid(row=12,
-                                                                                                        column=0)
-    date_input = Label(root, text=fullyVaccinatedDay.date()).grid(row=12, column=1)
+    date_msg = Label(root, text="The final date where 100% of population will be vaccinated is: ").grid(row=10,column=0)
+    date_input = Label(root, text=fullyVaccinatedDay.date()).grid(row=10, column=1)
+    day_msg= Label(root, text="Amount of days from first vaccination: ").grid(row=11, column=0)
+    day_input = Label(root, text=predictionDay).grid(row=11, column=1)
 
     # vac_msg = Label(root, text="At this day, this many people will be fully vaccinated: ").grid(row=13, column=0)
     # vac_input = Label(root, text=numOfVacPeople).grid(row=13, column=1)
@@ -95,6 +95,9 @@ def predict(choice):
         print(y)
 
     plt.scatter(x, y)
+    plt.title('Current Regression Covid-19 vaccination')
+    plt.xlabel('Days from first vaccination')
+    plt.ylabel('Population given vaccine')
     plt.plot(line, model(line), color="red")
     plt.show()
 
@@ -150,7 +153,7 @@ for country in vacdata['country'].unique():
 root = Tk()
 root.title("Corona vaccination prediction")
 root.geometry("700x200")
-root.configure(bg='#E4E6E7')
+#root.configure(bg='#E4E6E7')
 clicked = StringVar(root)
 clicked.set("Choose country")
 
