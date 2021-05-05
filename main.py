@@ -165,7 +165,6 @@ popInput = Label(root, text=selectedPop).grid(row=9, column=1)
 
 dayMsg = Label(root, text="Days from first vaccination: ").grid(row=11, column=0)
 dayInput = Label(root, text=predictionDay).grid(row=11, column=1)
-
 dateMsg = Label(root, text="The final date where 100% of population will be vaccinated is: ").grid(row=12, column=0)
 dateInput = Label(root, text=fullyVaccinatedDay.date()).grid(row=12, column=1)
 
