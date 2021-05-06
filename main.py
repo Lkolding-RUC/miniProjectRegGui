@@ -29,6 +29,15 @@ clean_data_vac.keep_columns(keeplistVac)
 clean_data_pop.keep_columns(keeplistPop)
 
 
+# Interpolate data, to avoid NaN values
+def interpolate_country(df, country):
+    firs = df.loc[df['country'] == country, 'people_fully_vaccinated'].index[0]
+    col = df.columns.get_loc('people_fully_vaccinated')
+    df.iloc[firs, col] = 0
+    specific_col = 'people_fully_vaccinated'
+    return df.loc[vacdata['country'] == country, specific_col].interpolate(limit_direction='both', limit=df.shape[0])
+
+
 # Group data
 people_fully_vaccinated = vacdata.groupby(by=['country'], sort=False, as_index=False)['people_fully_vaccinated'].max()
 
@@ -144,16 +153,7 @@ def predict(choice):
     ax.set_ylabel('Population given vaccine')
     ax.set_title('Current Regression Covid-19 vaccination')
 
-    
-    # Interpolate data, to avoid NaN values
-def interpolate_country(df, country):
-    firs = df.loc[df['country'] == country, 'people_fully_vaccinated'].index[0]
-    col = df.columns.get_loc('people_fully_vaccinated')
-    df.iloc[firs, col] = 0
-    specific_col = 'people_fully_vaccinated'
-    return df.loc[vacdata['country'] == country, specific_col].interpolate(limit_direction='both', limit=df.shape[0])
 
-  
     # Function that makes the prediction
 def predict_fully_vaccinated_day(model, population):
     dayCount = 0
