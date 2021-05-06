@@ -9,6 +9,37 @@ import tkinter as tk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
+# Read csv files
+vacdata = pd.read_csv('archive/country_vaccinations.csv')
+popdata = pd.read_csv('archive/population_by_country_2020.csv')
+
+# Rename columns in population dataset
+popdata_new = popdata.rename(columns={'Country (or dependency)': 'country', 'Population (2020)': 'population'},
+                             inplace=False)
+
+# hvad er forskellen på denne og clean_data_ i linje 149/150?
+clean_data_vac = DataClean(vacdata)
+clean_data_pop = DataClean(popdata_new)
+
+keeplistVac = ['country', 'date', 'people_fully_vaccinated']
+
+keeplistPop = ['country', 'population']
+
+clean_data_vac.keep_columns(keeplistVac)
+clean_data_pop.keep_columns(keeplistPop)
+
+
+# Group data
+people_fully_vaccinated = vacdata.groupby(by=['country'], sort=False, as_index=False)['people_fully_vaccinated'].max()
+
+for country in vacdata['country'].unique():
+    vacdata.loc[vacdata['country'] == country, 'people_fully_vaccinated'] = interpolate_country(vacdata, country)
+
+    
+# merge datasets
+mergedata = pd.merge(vacdata, popdata_new)
+
+
 # Function that return the population of a specific country
 def get_population(df, country):
     result = df.loc[df['country'] == country, 'population'].iloc[0]
@@ -126,38 +157,6 @@ def predict_fully_vaccinated_day(model, population):
             return dayCount
         dayCount = dayCount + 1
     return dayCount
-
-
-# Read csv files
-vacdata = pd.read_csv('archive/country_vaccinations.csv')
-popdata = pd.read_csv('archive/population_by_country_2020.csv')
-
-# Rename columns in population dataset
-popdata_new = popdata.rename(columns={'Country (or dependency)': 'country', 'Population (2020)': 'population'},
-                             inplace=False)
-
-# hvad er forskellen på denne og clean_data_ i linje 149/150?
-clean_data_vac = DataClean(vacdata)
-clean_data_pop = DataClean(popdata_new)
-
-
-keeplistVac = ['country', 'date', 'people_fully_vaccinated']
-
-keeplistPop = ['country', 'population']
-
-
-
-clean_data_vac.keep_columns(keeplistVac)
-clean_data_pop.keep_columns(keeplistPop)
-
-# Group data
-people_fully_vaccinated = vacdata.groupby(by=['country'], sort=False, as_index=False)['people_fully_vaccinated'].max()
-
-for country in vacdata['country'].unique():
-    vacdata.loc[vacdata['country'] == country, 'people_fully_vaccinated'] = interpolate_country(vacdata, country)
-
-# merge datasets
-mergedata = pd.merge(vacdata, popdata_new)
 
 
 # start GUI
