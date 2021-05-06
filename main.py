@@ -17,7 +17,7 @@ popdata = pd.read_csv('archive/population_by_country_2020.csv')
 popdata_new = popdata.rename(columns={'Country (or dependency)': 'country', 'Population (2020)': 'population'},
                              inplace=False)
 
-# hvad er forskellen på denne og clean_data_ i linje 149/150?
+# Datacleaning
 clean_data_vac = DataClean(vacdata)
 clean_data_pop = DataClean(popdata_new)
 
@@ -36,17 +36,16 @@ for country in vacdata['country'].unique():
     vacdata.loc[vacdata['country'] == country, 'people_fully_vaccinated'] = interpolate_country(vacdata, country)
 
     
-# merge datasets
+# Merge datasets
 mergedata = pd.merge(vacdata, popdata_new)
 
 
-# Function that return the population of a specific country
+# Function that returns the population of a specific country
 def get_population(df, country):
     result = df.loc[df['country'] == country, 'population'].iloc[0]
     return result
 
-
-# Function that return the date of the start of the vaccination, of a specific country
+# Function that returns the date of the start of the vaccination, of a specific country
 def get_start_date(df, country):
     date_string = df.loc[df['country'] == country, 'date'].iloc[0]
     # Convert string to date
@@ -69,7 +68,7 @@ def select_best_model(x, y):
     print('Model with best certainty is: ', model_number)
     return model
 
-
+# Function that runs when we choose a country
 def predict(choice):
     selectedCountry = choice
 
@@ -79,11 +78,12 @@ def predict(choice):
     # Get the selected country's start date
     startDate = get_start_date(vacdata, choice)
 
-    # set specific country to be equal to choice in drop down menu
+    # Set specific country to be equal to choice in drop down menu
     spec_country = mergedata[mergedata.country == choice]
-    # set x to be equal to amount of days the specific country has been vaccinating
+    
+    # Set x to be equal to amount of days the specific country has been vaccinating
     spec_country['x'] = np.arange(len(spec_country))
-
+    
     x = spec_country['x']
     y = spec_country['people_fully_vaccinated']
 
