@@ -21,7 +21,6 @@ def get_start_date(df, country):
     result = dt.datetime.strptime(date_string, '%Y-%m-%d')
     return result
 
-
 def select_best_model(x, y):
     models = [2, 3, 4]
     model_number = 1
