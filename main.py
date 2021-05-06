@@ -45,6 +45,7 @@ def get_population(df, country):
     result = df.loc[df['country'] == country, 'population'].iloc[0]
     return result
 
+  
 # Function that returns the date of the start of the vaccination, of a specific country
 def get_start_date(df, country):
     date_string = df.loc[df['country'] == country, 'date'].iloc[0]
@@ -52,6 +53,7 @@ def get_start_date(df, country):
     result = dt.datetime.strptime(date_string, '%Y-%m-%d')
     return result
 
+  
 # Loop through 1, 2, 3 and 4th degree polynomials to find the best fit line based on r2 score. Select model with highest r2 value
 def select_best_model(x, y):
     models = [2, 3, 4]
@@ -68,6 +70,7 @@ def select_best_model(x, y):
     print('Model with best certainty is: ', model_number)
     return model
 
+  
 # Function that runs when we choose a country
 def predict(choice):
     selectedCountry = choice
@@ -83,43 +86,44 @@ def predict(choice):
     
     # Set x to be equal to amount of days the specific country has been vaccinating
     spec_country['x'] = np.arange(len(spec_country))
-    
     x = spec_country['x']
+    
+    # Set y to amount of people fully vaccinated, in the chosen country
     y = spec_country['people_fully_vaccinated']
 
-    # set model to be equal to best fit model found above & insert x, y values
+    # Set model to be equal to best fit model found above & insert x, y values
     model = select_best_model(x, y)
 
-
-    # Days from start day - to predicted day
+    # Days from start day to predicted day
     predictionDay = predict_fully_vaccinated_day(model, selectedPop)
 
-    #the date where full vaccination is achieved
+    # The date where full vaccination is achieved
     fullyVaccinatedDay = startDate + dt.timedelta(predictionDay)
-
+    
+    # The amount of people vaccinated on the predicted day, calculated by the model
     numOfVacPeople = model(predictionDay)
-
+    
+    # Show the results of the prediction in the terminal, to make sure the prediction is correct
     print('this is startDate', startDate)
     print('This is the population:', selectedPop)
     print('This is predictionDay', predictionDay)
     print('All in ', selectedCountry, ' will be vaccinated on:', fullyVaccinatedDay.date())
     print("At this day, this many people will be fully vaccinated: ", numOfVacPeople)
-
     print("We know this, with certainty from 0-1: ", r2_score(y, model(x)))
 
-    # GUI
+    # GUI - display prediction values
     pop_msg = Label(root, text="Population in your selected country : ", ).grid(row=9, column=0)
     pop_input = Label(root, text=selectedPop).grid(row=9, column=1)
-
 
     date_msg = Label(root, text="The final date where 100% of population will be vaccinated is: ").grid(row=10,column=0)
     date_input = Label(root, text=fullyVaccinatedDay.date()).grid(row=10, column=1)
     day_msg = Label(root, text="Amount of days from first vaccination: ").grid(row=11, column=0)
     day_input = Label(root, text=predictionDay).grid(row=11, column=1)
-
-
-    line = np.linspace(0, 140, 100)  # last value = precision
-
+    
+    # Show regression. Limit at 140 on x-axis, since the maximum amount of days per country is 136
+    line = np.linspace(0, 140, 100)  
+    
+    # Plot data
     plt.scatter(x, y)
     plt.title('Current Regression Covid-19 vaccination')
     plt.xlabel('Days from first vaccination')
@@ -127,7 +131,7 @@ def predict(choice):
     plt.plot(line, model(line), color="red")
     plt.show()
 
-    #Display plotted model in GUI
+    # Display plotted model in GUI
     figure = plt.Figure(figsize=(7, 6), dpi=100)
     ax = figure.add_subplot(111)
     ax.scatter(x, y)
@@ -135,11 +139,13 @@ def predict(choice):
     chart_type.get_tk_widget().grid(row=13, column=0)
     ax.plot(line, model(line), color="red")
 
+    # Set labels
     ax.set_xlabel('Days from first vaccination')
     ax.set_ylabel('Population given vaccine')
     ax.set_title('Current Regression Covid-19 vaccination')
 
-# måske en kommentar til denne også (men jeg kan ikke forklare det særlig godt)
+    
+    # Interpolate data, to avoid NaN values
 def interpolate_country(df, country):
     firs = df.loc[df['country'] == country, 'people_fully_vaccinated'].index[0]
     col = df.columns.get_loc('people_fully_vaccinated')
@@ -147,32 +153,33 @@ def interpolate_country(df, country):
     specific_col = 'people_fully_vaccinated'
     return df.loc[vacdata['country'] == country, specific_col].interpolate(limit_direction='both', limit=df.shape[0])
 
-
+  
+    # Function that makes the prediction
 def predict_fully_vaccinated_day(model, population):
     dayCount = 0
+    # Set maximum days until full vaccination
     while dayCount < 5000:
         vaccinated = model(dayCount)
+        # Checks when the amount of vaccinated people hits the amount of citizens
         if vaccinated > population:
             # Reached the population - return dayCount
             return dayCount
+          # If not reached, loop through again
         dayCount = dayCount + 1
     return dayCount
 
-
-# start GUI
+  
+# GUI - setup
 root = Tk()
 root.title("Corona vaccination prediction")
 root.geometry("850x750")
 clicked = StringVar(root)
 clicked.set("Choose country")
 
-
 message = Label(root, text="Pick a country below, and we'll predict when it will be fully vaccinated.")
 drop_down_country = OptionMenu(root, clicked, *sorted(popdata_new.country), command=predict)
 
 message.grid(row=1, column=0)
 drop_down_country.grid(row=4, column=0)
-
-
 
 root.mainloop()
