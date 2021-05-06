@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import r2_score
 from tkinter import *
 import tkinter as tk
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 
 # Function that return the population of a specific country
@@ -14,13 +15,14 @@ def get_population(df, country):
     return result
 
 
-# Function that return the date of the start of the vaccanation, of a specific country
+# Function that return the date of the start of the vaccination, of a specific country
 def get_start_date(df, country):
     date_string = df.loc[df['country'] == country, 'date'].iloc[0]
     # Convert string to date
     result = dt.datetime.strptime(date_string, '%Y-%m-%d')
     return result
 
+# Loop through 1, 2, 3 and 4th degree polynomials to find the best fit line based on r2 score. Select model with highest r2 value
 def select_best_model(x, y):
     models = [2, 3, 4]
     model_number = 1
@@ -46,20 +48,22 @@ def predict(choice):
     # Get the selected country's start date
     startDate = get_start_date(vacdata, choice)
 
+    # set specific country to be equal to choice in drop down menu
     spec_country = mergedata[mergedata.country == choice]
+    # set x to be equal to amount of days the specific country has been vaccinating
     spec_country['x'] = np.arange(len(spec_country))
 
-    # print('This is spec_country: \n', spec_country, 'here it ends')
-    # print('This is the len of spec_country', len(spec_country))
     x = spec_country['x']
     y = spec_country['people_fully_vaccinated']
 
+    # set model to be equal to best fit model found above & insert x, y values
     model = select_best_model(x, y)
-    # model = np.poly1d(np.polyfit(x, y, 5))
+
 
     # Days from start day - to predicted day
     predictionDay = predict_fully_vaccinated_day(model, selectedPop)
 
+    #the date where full vaccination is achieved
     fullyVaccinatedDay = startDate + dt.timedelta(predictionDay)
 
     numOfVacPeople = model(predictionDay)
@@ -69,28 +73,21 @@ def predict(choice):
     print('This is predictionDay', predictionDay)
     print('All in ', selectedCountry, ' will be vaccinated on:', fullyVaccinatedDay.date())
     print("At this day, this many people will be fully vaccinated: ", numOfVacPeople)
-    # print("The country has this many citizens: ", spec_country['population'])
+
     print("We know this, with certainty from 0-1: ", r2_score(y, model(x)))
 
     # GUI
     pop_msg = Label(root, text="Population in your selected country : ", ).grid(row=9, column=0)
     pop_input = Label(root, text=selectedPop).grid(row=9, column=1)
 
-    # day_input = Label(root, text=predictionDay).grid(row=11, column=1)
+
     date_msg = Label(root, text="The final date where 100% of population will be vaccinated is: ").grid(row=10,column=0)
     date_input = Label(root, text=fullyVaccinatedDay.date()).grid(row=10, column=1)
-    day_msg= Label(root, text="Amount of days from first vaccination: ").grid(row=11, column=0)
+    day_msg = Label(root, text="Amount of days from first vaccination: ").grid(row=11, column=0)
     day_input = Label(root, text=predictionDay).grid(row=11, column=1)
 
-    # vac_msg = Label(root, text="At this day, this many people will be fully vaccinated: ").grid(row=13, column=0)
-    # vac_input = Label(root, text=numOfVacPeople).grid(row=13, column=1)
 
-    # model_msg = Label(root, text="The best fit model for this data is: ").grid(row=13, column=0)
     line = np.linspace(0, 140, 100)  # last value = precision
-    prediction = True
-
-    if prediction == spec_country['population'].iloc[0]:
-        print(y)
 
     plt.scatter(x, y)
     plt.title('Current Regression Covid-19 vaccination')
@@ -99,7 +96,19 @@ def predict(choice):
     plt.plot(line, model(line), color="red")
     plt.show()
 
+    #Display plotted model in GUI
+    figure = plt.Figure(figsize=(7, 6), dpi=100)
+    ax = figure.add_subplot(111)
+    ax.scatter(x, y)
+    chart_type = FigureCanvasTkAgg(figure, root)
+    chart_type.get_tk_widget().grid(row=13, column=0)
+    ax.plot(line, model(line), color="red")
 
+    ax.set_xlabel('Days from first vaccination')
+    ax.set_ylabel('Population given vaccine')
+    ax.set_title('Current Regression Covid-19 vaccination')
+
+# måske en kommentar til denne også (men jeg kan ikke forklare det særlig godt)
 def interpolate_country(df, country):
     firs = df.loc[df['country'] == country, 'people_fully_vaccinated'].index[0]
     col = df.columns.get_loc('people_fully_vaccinated')
@@ -119,7 +128,7 @@ def predict_fully_vaccinated_day(model, population):
     return dayCount
 
 
-# Read csv files no paths pwease! Just keep data in separate data folder
+# Read csv files
 vacdata = pd.read_csv('archive/country_vaccinations.csv')
 popdata = pd.read_csv('archive/population_by_country_2020.csv')
 
@@ -127,19 +136,19 @@ popdata = pd.read_csv('archive/population_by_country_2020.csv')
 popdata_new = popdata.rename(columns={'Country (or dependency)': 'country', 'Population (2020)': 'population'},
                              inplace=False)
 
+# hvad er forskellen på denne og clean_data_ i linje 149/150?
 clean_data_vac = DataClean(vacdata)
 clean_data_pop = DataClean(popdata_new)
 
-# Drops Items in dropList
-dropListVac = ['iso_code', 'total_vaccinations', 'people_vaccinated', 'daily_vaccinations_raw',
-               'daily_vaccinations', 'total_vaccinations_per_hundred', 'people_vaccinated_per_hundred',
-               'people_fully_vaccinated_per_hundred', 'daily_vaccinations_per_million', 'vaccines',
-               'source_name', 'source_website']
-dropListPop = ['Yearly Change', 'Net Change', 'Density (P/Km²)', 'Land Area (Km²)', 'Migrants (net)',
-               'Fert. Rate', 'Med. Age', 'Urban Pop %', 'World Share']
 
-clean_data_vac.removeCols(dropListVac)
-clean_data_pop.removeCols(dropListPop)
+keeplistVac = ['country', 'date', 'people_fully_vaccinated']
+
+keeplistPop = ['country', 'population']
+
+
+
+clean_data_vac.keep_columns(keeplistVac)
+clean_data_pop.keep_columns(keeplistPop)
 
 # Group data
 people_fully_vaccinated = vacdata.groupby(by=['country'], sort=False, as_index=False)['people_fully_vaccinated'].max()
@@ -147,11 +156,14 @@ people_fully_vaccinated = vacdata.groupby(by=['country'], sort=False, as_index=F
 for country in vacdata['country'].unique():
     vacdata.loc[vacdata['country'] == country, 'people_fully_vaccinated'] = interpolate_country(vacdata, country)
 
+# merge datasets
+mergedata = pd.merge(vacdata, popdata_new)
+
+
 # start GUI
 root = Tk()
 root.title("Corona vaccination prediction")
-root.geometry("700x200")
-#root.configure(bg='#E4E6E7')
+root.geometry("850x750")
 clicked = StringVar(root)
 clicked.set("Choose country")
 
@@ -162,7 +174,6 @@ drop_down_country = OptionMenu(root, clicked, *sorted(popdata_new.country), comm
 message.grid(row=1, column=0)
 drop_down_country.grid(row=4, column=0)
 
-# merge datasets
-mergedata = pd.merge(vacdata, popdata_new)
+
 
 root.mainloop()
