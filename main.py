@@ -25,7 +25,7 @@ def get_start_date(df, country):
 def select_best_model(x, y):
     models = [2, 3, 4]
     model_number = 1
-    model = np.poly1d(np.polyfit(x, y, 1))
+    model = np.poly1d(np.polyfit(x, y, model_number))
     score = r2_score(y, model(x))
     for i in models:
         model_2 = np.poly1d(np.polyfit(x, y, i))
@@ -57,7 +57,6 @@ def predict(choice):
 
     model = select_best_model(x, y)
     # model = np.poly1d(np.polyfit(x, y, 5))
-    line = np.linspace(0, 104, 120)  # last value = precision
 
     # Days from start day - to predicted day
     predictionDay = predict_fully_vaccinated_day(model, selectedPop)
@@ -88,7 +87,7 @@ def predict(choice):
     # vac_input = Label(root, text=numOfVacPeople).grid(row=13, column=1)
 
     # model_msg = Label(root, text="The best fit model for this data is: ").grid(row=13, column=0)
-
+    line = np.linspace(0, 140, 100)  # last value = precision
     prediction = True
 
     if prediction == spec_country['population'].iloc[0]:
